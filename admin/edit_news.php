@@ -8,6 +8,10 @@ if (!isset($_SESSION['username'])) {
     exit;
 }
 
+$categoryCollection = $db->categories;
+
+$categories = $categoryCollection->find([], ['sort' => ['name' => 1]]);
+
 // Variabel untuk pesan pemberitahuan
 $message = "";
 
@@ -28,7 +32,7 @@ try {
 }
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $collection = $db->news;
+    $newsCollection = $db->news;
     $target_dir = "../uploads/";
     $media_path = $news['media'] ?? ''; // Default ke media lama jika tidak ada yang baru
     $old_media_path = $media_path;
@@ -80,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     if ($uploadOk) {
     // Update data di database
-        $result = $collection->updateOne(
+        $result = $newsCollection->updateOne(
             ['_id' => $id],
             [
                 '$set' => [
@@ -236,12 +240,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <label for="category" class="form-label">Kategori</label>
                 <select class="form-select" id="category" name="category" required>
                     <option value="">Pilih Kategori</option>
-                    <option value="politik" <?= $news['category'] === 'politik' ? 'selected' : '' ?>>Politik</option>
-                    <option value="bencana" <?= $news['category'] === 'bencana' ? 'selected' : '' ?>>Bencana</option>
-                    <option value="lalu-lintas" <?= $news['category'] === 'lalu-lintas' ? 'selected' : '' ?>>Lalu Lintas
-                    </option>
-                    <option value="pendidikan" <?= $news['category'] === 'pendidikan' ? 'selected' : '' ?>>Pendidikan
-                    </option>
+                    <?php foreach ($categories as $category): ?>
+                    <option value="<?= $category['name'] ?>" <?= $news['category'] === $category['name'] ? 'selected' : '' ?>><?= $category['name'] ?></option>
+                    <?php endforeach; ?>
                 </select>
             </div>
             <div class="mb-3">

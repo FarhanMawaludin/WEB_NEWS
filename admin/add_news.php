@@ -8,11 +8,15 @@ if (!isset($_SESSION['username'])) {
     exit;
 }
 
+$categoryCollection = $db->categories;
+
+$categories = $categoryCollection->find([], ['sort' => ['name' => 1]]);
+
 // Variabel untuk pesan pemberitahuan
 $message = "";
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $collection = $db->news;
+    $newsCollection = $db->news;
     $target_dir = "../uploads/"; // Direktori untuk file gambar atau video
     $target_file = $target_dir . basename($_FILES["media"]["name"]);
     $uploadOk = 1;
@@ -50,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Jika validasi lolos, proses upload
     if ($uploadOk) {
         if (move_uploaded_file($_FILES["media"]["tmp_name"], $target_file)) {
-            $result = $collection->insertOne([
+            $result = $newsCollection->insertOne([
                 'title' => htmlspecialchars($_POST['title']),
                 'content' => $_POST['content'],
                 'summary' => htmlspecialchars($_POST['summary']),
@@ -198,10 +202,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <label for="category" class="form-label">Kategori</label>
                 <select class="form-select" id="category" name="category" required>
                     <option value="">Pilih Kategori</option>
-                    <option value="politik">Politik</option>
-                    <option value="bencana">Bencana</option>
-                    <option value="lalu-lintas">Lalu Lintas</option>
-                    <option value="pendidikan">Pendidikan</option>
+                    <?php foreach ($categories as $category): ?>
+                    <option value="<?= $category['name'] ?>"><?= $category['name'] ?></option>
+                    <?php endforeach; ?>
                 </select>
             </div>
             <div class="mb-3">

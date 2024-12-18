@@ -11,7 +11,7 @@ $collection = $db->categories;
 
 // Data Kategori
 if (!isset($_GET['id'])) {
-    header('Location: manage_categories.php');
+    header('Location: manage_category.php');
     exit;
 }
 
@@ -19,7 +19,7 @@ $id = new MongoDB\BSON\ObjectId($_GET['id']);
 $category = $collection->findOne(['_id' => $id]);
 
 if (!$category) {
-    header('Location: manage_categories.php');
+    header('Location: manage_category.php');
     exit;
 }
 
@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_category'])) {
     $name = trim($_POST['name']);
     if (!empty($name)) {
         $collection->updateOne(['_id' => $id], ['$set' => ['name' => $name]]);
-        header('Location: manage_categories.php');
+        header('Location: manage_category.php');
         exit;
     }
 }
@@ -53,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_category'])) {
                 <input type="text" name="name" id="name" class="form-control" value="<?= $category['name'] ?>" required>
             </div>
             <button type="submit" name="update_category" class="btn btn-success">Update</button>
-            <a href="manage_categories.php" class="btn btn-secondary">Kembali</a>
+            <a href="manage_category.php" class="btn btn-secondary">Kembali</a>
         </form>
     </div>
 

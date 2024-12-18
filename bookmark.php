@@ -3,19 +3,20 @@
 
     $searchQuery = isset($_GET['search']) ? trim($_GET['search']) : "";
     $categoryFilter = isset($_GET['category']) ? $_GET['category'] : "";
-    $collection = $db->news;
-
+    $newsCollection = $db->news;
+    $categoriesCollection = $db->categories;
+    
     // Ambil kategori unik dari database
-    $categories = $collection->distinct('category');
+    $categories = $categoriesCollection->find([], ['sort' => ['name' => 1]]);
 
     // Query berita
     if ($categoryFilter) {
-        $cursor = $collection->find(
+        $cursor = $newsCollection->find(
             ['category' => $categoryFilter],
             ['sort' => ['created_at' => -1]]
         );
     } elseif ($searchQuery) {
-        $cursor = $collection->find(
+        $cursor = $newsCollection->find(
             [
                 '$or' => [
                     ['title' => new MongoDB\BSON\Regex($searchQuery, 'i')],
@@ -25,7 +26,7 @@
             ['sort' => ['created_at' => -1]]
         );
     } else {
-        $cursor = $collection->find([], ['sort' => ['created_at' => -1]]);
+        $cursor = $newsCollection->find([], ['sort' => ['created_at' => -1]]);
     }
 
     $newsList = iterator_to_array($cursor);
@@ -114,10 +115,9 @@
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Kategori</a>
                         <div class="dropdown-menu">
-                            <a class="dropdown-item" href="index.php?category=politik">Politik</a>
-                            <a class="dropdown-item" href="index.php?category=bencana">Bencana</a>
-                            <a class="dropdown-item" href="index.php?category=lalu-lintas">Lalu Lintas</a>
-                            <a class="dropdown-item" href="index.php?category=pendidikan">Pendidikan</a>
+                            <?php foreach ($categories as $category): ?>
+                            <a class="dropdown-item" href="index.php?category=<?= $category->name ?>"><?= ucwords($category->name) ?></a>
+                            <?php endforeach; ?>
                         </div>
                     </li>
                     <li class="nav-item"><a class="nav-link" href="bookmark.php">Bookmark</a></li>

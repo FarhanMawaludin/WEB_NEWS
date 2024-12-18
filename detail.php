@@ -12,7 +12,8 @@ require 'config/db.php';
 $searchQuery = isset($_GET['search']) ? htmlspecialchars(trim($_GET['search'])) : "";
 
 // Koleksi MongoDB
-$collection = $db->news;
+$newsCollection = $db->news;
+$categoryCollection = $db->categories;
 
 // Filter pencarian jika ada input pengguna
 $filter = [];
@@ -24,7 +25,7 @@ if ($searchQuery) {
 }
 
 // Ambil berita berdasarkan filter dan urutan berdasarkan tanggal terbaru
-$cursor = $collection->find($filter, ['sort' => ['created_at' => -1]]);
+$cursor = $newsCollection->find($filter, ['sort' => ['created_at' => -1]]);
 $newsList = iterator_to_array($cursor);
 
 // Halaman detail berita jika ada
@@ -32,16 +33,22 @@ $news = null;
 try {
     $id = new MongoDB\BSON\ObjectId($_GET['id']);
 
-    $updateResult = $collection->updateOne(
+    $newsCollection->updateOne(
         ['_id' => $id],
         ['$inc' => ['views' => 1]]
     );
 
-    $news = $collection->findOne(['_id' => $id]);
+    
+    $news = $newsCollection->findOne(['_id' => $id]);
     if (!$news) {
         echo "<p>Berita tidak ditemukan.</p>";
         exit;
     }
+
+    $categoryCollection->updateOne(
+        ['name' => $news['category']],
+        ['$inc' => ['views' => 1]]
+    );
 } catch (Exception $e) {
     echo "<p>ID tidak valid.</p>";
     exit;

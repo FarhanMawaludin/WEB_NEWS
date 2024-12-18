@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_category'])) {
     $name = trim($_POST['name']);
     if (!empty($name)) {
         $collection->insertOne(['name' => $name]);
-        header('Location: manage_categories.php');
+        header('Location: manage_category.php');
         exit;
     }
 }
@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_category'])) {
 if (isset($_GET['delete_id'])) {
     $deleteId = new MongoDB\BSON\ObjectId($_GET['delete_id']);
     $collection->deleteOne(['_id' => $deleteId]);
-    header('Location: manage_categories.php');
+    header('Location: manage_category.php');
     exit;
 }
 
@@ -51,7 +51,7 @@ $categories = iterator_to_array($categoriesCursor);
                     <a class="nav-link" href="manage_news.php">Kelola Berita</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link active" href="manage_categories.php">Kelola Kategori</a>
+                    <a class="nav-link active" href="manage_category.php">Kelola Kategori</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="logout.php">

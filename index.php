@@ -3,19 +3,20 @@ require 'config/db.php';
 
 $searchQuery = isset($_GET['search']) ? trim($_GET['search']) : "";
 $categoryFilter = isset($_GET['category']) ? $_GET['category'] : "";
-$collection = $db->news;
+$newsCollection = $db->news;
+$categoriesCollection = $db->categories;
 
 // Ambil kategori unik dari database
-$categories = $collection->distinct('category');
+$categories = iterator_to_array($categoriesCollection->find([], ['sort' => ['name' => 1]]));
 
 // Query berita
 if ($categoryFilter) {
-    $cursor = $collection->find(
+    $cursor = $newsCollection->find(
         ['category' => $categoryFilter],
         ['sort' => ['created_at' => -1]]
     );
 } elseif ($searchQuery) {
-    $cursor = $collection->find(
+    $cursor = $newsCollection->find(
         [
             '$or' => [
                 ['title' => new MongoDB\BSON\Regex($searchQuery, 'i')],
@@ -25,7 +26,7 @@ if ($categoryFilter) {
         ['sort' => ['created_at' => -1]]
     );
 } else {
-    $cursor = $collection->find([], ['sort' => ['created_at' => -1]]);
+    $cursor = $newsCollection->find([], ['sort' => ['created_at' => -1]]);
 }
 
 $newsList = iterator_to_array($cursor);
@@ -114,10 +115,9 @@ $newsList = iterator_to_array($cursor);
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Kategori</a>
                         <div class="dropdown-menu">
-                            <a class="dropdown-item" href="index.php?category=politik">Politik</a>
-                            <a class="dropdown-item" href="index.php?category=bencana">Bencana</a>
-                            <a class="dropdown-item" href="index.php?category=lalu-lintas">Lalu Lintas</a>
-                            <a class="dropdown-item" href="index.php?category=pendidikan">Pendidikan</a>
+                            <?php foreach ($categories as $category): ?>
+                            <a class="dropdown-item" href="index.php?category=<?= $category->name ?>"><?= ucwords($category->name) ?></a>
+                            <?php endforeach; ?>
                         </div>
                     </li>
                     <li class="nav-item"><a class="nav-link" href="bookmark.php">Bookmark</a></li>
@@ -245,351 +245,286 @@ $newsList = iterator_to_array($cursor);
 
 
 
-            <div class="row">
-                <?php if (count($newsList) > 0 && !$searchQuery && !$categoryFilter): ?>
-                <!-- Cek apakah tidak ada query pencarian -->
-                <div class="row mb-3 justify-content-between">
-                    <div class="col-6">
-                        <h4 class="fw-semibold">Berita Lainnya</h4>
-                    </div>
-                    <div class="col-6 text-end">
-                        <a class="text-decoration-none text-danger" href="see_all.php">
-                            See all
-                            <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
-
-                <?php foreach (array_slice($newsList, 1, 4) as $news): ?>
-                <div class="col-md-3 mb-4">
-                    <div class="card ">
-                        <a href="detail.php?id=<?= $news['_id'] ?>" class="text-decoration-none text-black">
+            <?php if (count($newsList) > 0 && !$searchQuery && !$categoryFilter): ?>
+                <div class="container mb-4">
+                    <?php 
+                        $news = $newsCollection->findOne([], ['sort' => ['created_at' => -1]]);
+                    ?>
+                    <div class="video mt-4">
+                        <h4 class="mt-3 mb-3 fw-semibold">News Terbaru</h4>
+                        <div class="card position-relative" style="height: 30rem;">
+                            <!-- Gambar -->
                             <?php
-                                        $fileExtension = isset($news['media']) ? pathinfo($news['media'], PATHINFO_EXTENSION) : '';
-                                        $imageUrl = isset($news['media']) ? 'uploads/' . $news['media'] : 'https://placehold.co/300x200';
-                                        ?>
+                                $fileExtension = pathinfo($news['media'], PATHINFO_EXTENSION);
+                                $imageUrl = isset($news['media']) ? 'uploads/' . $news['media'] : 'https://placehold.co/600x400';
+                                ?>
 
                             <?php if (in_array(strtolower($fileExtension), ['jpg', 'jpeg', 'png', 'gif', 'webp'])): ?>
-                            <img src="<?= $imageUrl ?>" class="card-img-top" height="200rem" width="100%"
-                                style="object-fit: cover;" alt="News Image">
+                            <img src="<?= $imageUrl ?>" class="card-img-top img-fluid"
+                                style="object-fit: cover; height: 100%; border-radius: 4px;" alt="News Image">
                             <?php elseif (in_array(strtolower($fileExtension), ['mp4', 'webm', 'ogg'])): ?>
-                            <video class="card-img-top" height="200rem" style="width: 100%; object-fit: contain;"
-                                controls muted>
+                            <video class="card-img-top img-fluid"
+                                style="object-fit: contain; height: 100%; border-radius: 4px;" controls muted>
                                 <source src="<?= $imageUrl ?>" type="video/<?= $fileExtension ?>">
                                 Your browser does not support the video tag.
                             </video>
-
                             <?php else: ?>
-                            <img src="<?= $imageUrl ?>" class="card-img-top" height="200rem" style="object-fit: cover;"
-                                alt="Placeholder Image">
+                            <img src="<?= $imageUrl ?>" class="card-img-top img-fluid"
+                                style="object-fit: cover; height: 100%; border-radius: 4px;" alt="Placeholder Image">
                             <?php endif; ?>
 
-                            <div class="card-body">
-                                <span class="badge bg-danger mb-2"><?= htmlspecialchars($news['category']) ?></span>
-                                <h5 class="card-title card-text-custom fw-semibold"><?= $news['title'] ?></h5>
-                                <p class="card-text card-text-custom"><?= $news['summary'] ?></p>
+
+                            <!-- Konten Overlay -->
+                            <div class="card-img-overlay d-flex flex-column justify-content-end"
+                                style="background: rgba(0, 0, 0, 0.2); color: white; border-radius: 4px;">
+                                <!-- Kategori -->
+                                <!-- <span class="badge bg-danger mb-2"><?= htmlspecialchars($news['category']) ?></span> -->
+
+                                <span class="fw-semibold mb-1">
+                                    <p class="badge bg-danger mb-2 fs-6"><?= htmlspecialchars($news['category']) ?></p>
+                                    <i class="bi bi-dot"></i>
+                                    <?= date('d M Y', strtotime($news['date'] ?? 'now')) ?>
+
+                                </span>
+                                <a href="detail.php?id=<?= $news['_id'] ?>" class="text-decoration-none text-white">
+                                    <!-- Judul Berita -->
+                                    <h2 class="card-title fw-bold mb-1"><?= htmlspecialchars($news['title']) ?></h2>
+
+                                    <h6 class="card-title card-text-custom mb-3 "><?= htmlspecialchars($news['summary']) ?>
+                                    </h6>
+                                    <!-- Tanggal -->
+
+                                </a>
                             </div>
-                        </a>
-                    </div>
-                </div>
-                <?php endforeach; ?>
-            </div>
-
-
-            <div class="container  my-4">
-                <div class="row mb-3">
-                    <div class="col-6">
-                        <h5 class="fw-semibold">Author of the Day</h5>
-                    </div>
-                    <div class="col-6 text-end">
-                        <a class="text-decoration-none text-danger" href="#">
-                            See all
-                            <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
-
-                <div class="row text-center">
-                    <?php foreach (array_slice($newsList, 0, 12) as $news): ?>
-                    <div class="col-1">
-                        <img src="https://storage.googleapis.com/a1aa/image/Du44GVELJFbnBBf39md0pYwfECFK4G6tF4fhaalxvH33fNsPB.jpg"
-                            class="rounded-circle border" alt="BBC News" width="60" height="60">
-                        <p class="small mt-2 mb-0"><?= $news['author'] ?></p>
-                    </div>
-                    <?php endforeach; ?>
-                </div>
-
-
-                <div class="video mt-4">
-                    <h4 class="mt-3 mb-3 fw-semibold">News Terbaru</h4>
-                    <div class="card position-relative" style="height: 30rem;">
-                        <!-- Gambar -->
-                        <?php
-                            $fileExtension = pathinfo($news['media'], PATHINFO_EXTENSION);
-                            $imageUrl = isset($news['media']) ? 'uploads/' . $news['media'] : 'https://placehold.co/600x400';
-                            ?>
-
-                        <?php if (in_array(strtolower($fileExtension), ['jpg', 'jpeg', 'png', 'gif', 'webp'])): ?>
-                        <img src="<?= $imageUrl ?>" class="card-img-top img-fluid"
-                            style="object-fit: cover; height: 100%; border-radius: 4px;" alt="News Image">
-                        <?php elseif (in_array(strtolower($fileExtension), ['mp4', 'webm', 'ogg'])): ?>
-                        <video class="card-img-top img-fluid"
-                            style="object-fit: contain; height: 100%; border-radius: 4px;" controls muted>
-                            <source src="<?= $imageUrl ?>" type="video/<?= $fileExtension ?>">
-                            Your browser does not support the video tag.
-                        </video>
-                        <?php else: ?>
-                        <img src="<?= $imageUrl ?>" class="card-img-top img-fluid"
-                            style="object-fit: cover; height: 100%; border-radius: 4px;" alt="Placeholder Image">
-                        <?php endif; ?>
-
-
-                        <!-- Konten Overlay -->
-                        <div class="card-img-overlay d-flex flex-column justify-content-end"
-                            style="background: rgba(0, 0, 0, 0.2); color: white; border-radius: 4px;">
-                            <!-- Kategori -->
-                            <!-- <span class="badge bg-danger mb-2"><?= htmlspecialchars($news['category']) ?></span> -->
-
-                            <span class="fw-semibold mb-1">
-                                <p class="badge bg-danger mb-2 fs-6"><?= htmlspecialchars($news['category']) ?></p>
-                                <i class="bi bi-dot"></i>
-                                <?= date('d M Y', strtotime($news['date'] ?? 'now')) ?>
-
-                            </span>
-                            <a href="detail.php?id=<?= $news['_id'] ?>" class="text-decoration-none text-white">
-                                <!-- Judul Berita -->
-                                <h2 class="card-title fw-bold mb-1"><?= htmlspecialchars($news['title']) ?></h2>
-
-                                <h6 class="card-title card-text-custom mb-3 "><?= htmlspecialchars($news['summary']) ?>
-                                </h6>
-                                <!-- Tanggal -->
-
-                            </a>
                         </div>
                     </div>
-                </div>
 
-                <div class="row">
-                    <h4 class="mt-4 mb-3 fw-semibold">Berita Lainnya</h4>
-                    <?php foreach (array_slice($newsList, 1, 3) as $news): ?>
-                    <div class="col-md-4 mb-4">
-                        <div class="card">
-                            <a href="detail.php?id=<?= $news['_id'] ?>" class="text-decoration-none text-black">
-                                <?php
-                                        $fileExtension = pathinfo($news['media'], PATHINFO_EXTENSION);
-                                        $imageUrl = isset($news['media']) ? 'uploads/' . $news['media'] : 'https://placehold.co/300x200';
-                                        ?>
-
-                                <?php if (in_array(strtolower($fileExtension), ['jpg', 'jpeg', 'png', 'gif', 'webp'])): ?>
-                                <img src="<?= $imageUrl ?>" class="card-img-top"
-                                    style="object-fit: cover; height: 300px; width: 100%;" alt="News Image">
-
-                                <?php elseif (in_array(strtolower($fileExtension), ['mp4', 'webm', 'ogg'])): ?>
-                                <video class="card-img-top" style="width: 100%; height: 300px; object-fit: contain;"
-                                    controls muted>
-                                    <source src="<?= $imageUrl ?>" type="video/<?= $fileExtension ?>">
-                                    Your browser does not support the video tag.
-                                </video>
-                                <?php else: ?>
-                                <img src="<?= $imageUrl ?>" class="card-img-top"
-                                    style="object-fit: cover; height: 200rem;" alt="Placeholder Image">
-                                <?php endif; ?>
-                                <div class="card-body">
-                                    <span class="badge bg-danger mb-2"><?= htmlspecialchars($news['category']) ?></span>
-                                    <h5 class="card-title card-text-custom fw-semibold"><?= $news['title'] ?></h5>
-                                    <p class="card-text card-text-custom"><?= $news['summary'] ?></p>
-                                    <!-- <a href="detail.php?id=<?= $news['_id'] ?>" class="btn btn-danger">Selengkapnya</a> -->
-                                </div>
-                            </a>
+                    <div class="row">
+                        <div class="row mt-4 justify-content-between">
+                            <div class="col-6">
+                                <h3 class="fw-semibold">Berita Lainnya</h3>
+                            </div>
+                            <div class="col-6 text-end">
+                                <a class="text-decoration-none text-danger" href="see_all.php">
+                                    See all
+                                    <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </div>
                         </div>
-                    </div>
-                    <?php endforeach; ?>
+                        <?php foreach (array_slice($newsList, 1, 3) as $news): ?>
+                        <div class="col-md-4 mb-4">
+                            <div class="card">
+                                <a href="detail.php?id=<?= $news['_id'] ?>" class="text-decoration-none text-black">
+                                    <?php
+                                            $fileExtension = pathinfo($news['media'], PATHINFO_EXTENSION);
+                                            $imageUrl = isset($news['media']) ? 'uploads/' . $news['media'] : 'https://placehold.co/300x200';
+                                            ?>
 
-                </div>
+                                    <?php if (in_array(strtolower($fileExtension), ['jpg', 'jpeg', 'png', 'gif', 'webp'])): ?>
+                                    <img src="<?= $imageUrl ?>" class="card-img-top"
+                                        style="object-fit: cover; height: 300px; width: 100%;" alt="News Image">
 
-                <div class="row">
-                    <!-- Kolom Kiri -->
-
-                    <div class="col-md-8 mt-4">
-                        <h3 class="fw-semibold mb-4">Latest News</h3>
-
-                        <?php foreach (array_slice($newsList, 0, 5) as $news): ?>
-                        <div class="row">
-                            <div class="col-md-8">
-                                <div class="d-flex align-items-center mt-2 mb-2">
-                                    <i class="fas fa-user-circle me-2 fs-2"
-                                        style="font-size: 20px; color: #6c757d;"></i>
-                                    <span class="fw-semibold"><?= htmlspecialchars($news['author']) ?></span>
-                                </div>
-                                <a href="detail.php?id=<?= $news['_id'] ?>"
-                                    class="card-title card-text-custom fw-semibold mb-2 fs-5 text-decoration-none"><?= $news['title'] ?></a>
-                                <p class="card-text card-text-custom "><?= $news['summary'] ?></p>
-                                <div class="d-flex justify-content-between align-items-center mt-3">
-                                    <!-- Tanggal di kiri -->
-                                    <p class="mb-0"><?= $news['created_at']->toDateTime()->format('l, d M Y') ?><i
-                                            class="bi bi-dot"></i>
-                                        <i class="bi bi-eye me-2"> <?= $news["views"] ?? 0 ?> Views</i>
-                                    </p>
-
-
-                                    <!-- Ikon di kanan -->
-                                    <div class="d-flex align-items-center me-3">
-                                        <!-- Bookmark -->
-                                        <!-- <button class="" style="margin-right: 0px;"> -->
-                                        <i id="bookmark-<?= $news['_id'] ?>" class="bi bi-bookmark me-2"
-                                            onclick="toggleBookmark('<?= $news['_id'] ?>')" style="cursor: pointer"></i>
-                                        <!-- </button> -->
-                                        <!-- Like/Love -->
-                                        <!-- <button class="me-2">
-                                    <i class="bi bi-heart"></i>
-                                </button> -->
-                                        <!-- Share -->
-                                        <!-- <button class=""> -->
-                                        <i class="bi bi-share"></i>
-                                        <!-- </button> -->
+                                    <?php elseif (in_array(strtolower($fileExtension), ['mp4', 'webm', 'ogg'])): ?>
+                                    <video class="card-img-top" style="width: 100%; height: 300px; object-fit: contain;"
+                                        controls muted>
+                                        <source src="<?= $imageUrl ?>" type="video/<?= $fileExtension ?>">
+                                        Your browser does not support the video tag.
+                                    </video>
+                                    <?php else: ?>
+                                    <img src="<?= $imageUrl ?>" class="card-img-top"
+                                        style="object-fit: cover; height: 200rem;" alt="Placeholder Image">
+                                    <?php endif; ?>
+                                    <div class="card-body">
+                                        <span class="badge bg-danger mb-2"><?= htmlspecialchars($news['category']) ?></span>
+                                        <h5 class="card-title card-text-custom fw-semibold"><?= $news['title'] ?></h5>
+                                        <p class="card-text card-text-custom"><?= $news['summary'] ?></p>
+                                        <!-- <a href="detail.php?id=<?= $news['_id'] ?>" class="btn btn-danger">Selengkapnya</a> -->
                                     </div>
-                                </div>
-
+                                </a>
                             </div>
-                            <div class="col-md-4 text-end">
-                                <?php
-                                        $fileExtension = pathinfo($news['media'], PATHINFO_EXTENSION);
-                                        $imageUrl = isset($news['media']) ? 'uploads/' . $news['media'] : 'https://placehold.co/60x60';
-                                        ?>
-
-                                <?php if (in_array(strtolower($fileExtension), ['jpg', 'jpeg', 'png', 'gif', 'webp'])): ?>
-                                <img src="<?= $imageUrl ?>" class="card-img-top img-fluid float-end"
-                                    style="object-fit: cover; border-radius: 10px; float: right; height: 13rem;"
-                                    alt="News Image">
-                                <?php elseif (in_array(strtolower($fileExtension), ['mp4', 'webm', 'ogg'])): ?>
-                                <video class="card-img-top img-fluid float-end"
-                                    style="object-fit: contain; border-radius: 10px; float: right; height: 13rem; width: 100%;"
-                                    controls muted>
-                                    <source src="<?= $imageUrl ?>" type="video/<?= $fileExtension ?>">
-                                    Your browser does not support the video tag.
-                                </video>
-                                <?php else: ?>
-                                <img src="<?= $imageUrl ?>" class="card-img-top img-fluid float-end"
-                                    style="object-fit: cover; border-radius: 10px; float: right; height: 13rem;"
-                                    alt="Placeholder Image">
-                                <?php endif; ?>
-                            </div>
-                            <hr class="mt-4 mb-4">
                         </div>
                         <?php endforeach; ?>
+
                     </div>
 
-                    <!-- Kolom Kanan -->
-                    <div class="col-md-4 mt-4">
-                        <h4 class="mt-3 mb-3">Search</h4>
-                        <form class="d-flex" method="get" action="index.php">
-                            <input class="form-control me-2" type="search" name="search" placeholder="Search"
-                                value="<?= htmlspecialchars($searchQuery) ?>">
-                            <button class="btn btn-danger " type="submit"><i class="bi bi-search"></i></button>
-                        </form>
+                    <div class="row">
+                        <!-- Kolom Kiri -->
 
-                        <div class="video mt-4">
-                            <h4 class="mt-3 mb-3">Berita Terlama</h4>
-                            <div class="card position-relative" style="height: 18rem;">
-                                <!-- Gambar -->
-                                <?php
-                                    $fileExtension = pathinfo($news['media'], PATHINFO_EXTENSION);
-                                    $imageUrl = isset($news['media']) ? 'uploads/' . $news['media'] : 'https://placehold.co/600x400';
-                                    ?>
+                        <div class="col-md-8 mt-4">
+                            <?php foreach (array_slice($newsList, 0, 5) as $news): ?>
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="d-flex align-items-center mt-2 mb-2">
+                                        <i class="fas fa-user-circle me-2 fs-2"
+                                            style="font-size: 20px; color: #6c757d;"></i>
+                                        <span class="fw-semibold"><?= htmlspecialchars($news['author']) ?></span>
+                                    </div>
+                                    <a href="detail.php?id=<?= $news['_id'] ?>"
+                                        class="card-title card-text-custom fw-semibold mb-2 fs-5 text-decoration-none"><?= $news['title'] ?></a>
+                                    <p class="card-text card-text-custom "><?= $news['summary'] ?></p>
+                                    <div class="d-flex justify-content-between align-items-center mt-3">
+                                        <!-- Tanggal di kiri -->
+                                        <p class="mb-0"><?= $news['created_at']->toDateTime()->format('l, d M Y') ?><i
+                                                class="bi bi-dot"></i>
+                                            <i class="bi bi-eye me-2"> <?= $news["views"] ?? 0 ?> Views</i>
+                                        </p>
 
-                                <?php if (in_array(strtolower($fileExtension), ['jpg', 'jpeg', 'png', 'gif', 'webp'])): ?>
-                                <img src="<?= $imageUrl ?>" class="card-img-top img-fluid"
-                                    style="object-fit: cover; height: 100%; border-radius: 4px;" alt="News Image">
-                                <?php elseif (in_array(strtolower($fileExtension), ['mp4', 'webm', 'ogg'])): ?>
-                                <video class="card-img-top img-fluid"
-                                    style="object-fit: cover; height: 100%; border-radius: 4px;" controls muted>
-                                    <source src="<?= $imageUrl ?>" type="video/<?= $fileExtension ?>">
-                                    Your browser does not support the video tag.
-                                </video>
-                                <?php else: ?>
-                                <img src="<?= $imageUrl ?>" class="card-img-top img-fluid"
-                                    style="object-fit: cover; height: 100%; border-radius: 4px;"
-                                    alt="Placeholder Image">
-                                <?php endif; ?>
 
-                                <!-- Konten Overlay -->
-                                <div class="card-img-overlay d-flex flex-column justify-content-end"
-                                    style="background: rgba(0, 0, 0, 0.2); color: white; border-radius: 4px;">
-                                    <!-- Kategori -->
-                                    <!-- <span class="badge bg-danger mb-2"><?= htmlspecialchars($news['category']) ?></span> -->
+                                        <!-- Ikon di kanan -->
+                                        <div class="d-flex align-items-center me-3">
+                                            <!-- Bookmark -->
+                                            <!-- <button class="" style="margin-right: 0px;"> -->
+                                            <i id="bookmark-<?= $news['_id'] ?>" class="bi bi-bookmark me-2"
+                                                onclick="toggleBookmark('<?= $news['_id'] ?>')" style="cursor: pointer"></i>
+                                            <!-- </button> -->
+                                            <!-- Like/Love -->
+                                            <!-- <button class="me-2">
+                                        <i class="bi bi-heart"></i>
+                                    </button> -->
+                                            <!-- Share -->
+                                            <!-- <button class=""> -->
+                                            <i class="bi bi-share"></i>
+                                            <!-- </button> -->
+                                        </div>
+                                    </div>
 
-                                    <!-- Judul Berita -->
-                                    <h5 class="card-title fw-bold mb-1"><?= htmlspecialchars($news['title']) ?></h5>
+                                </div>
+                                <div class="col-md-4 text-end">
+                                    <?php
+                                            $fileExtension = pathinfo($news['media'], PATHINFO_EXTENSION);
+                                            $imageUrl = isset($news['media']) ? 'uploads/' . $news['media'] : 'https://placehold.co/60x60';
+                                            ?>
 
-                                    <!-- Tanggal -->
-                                    <small class="text-light mb-2">
-                                        <?= date('d M Y', strtotime($news['date'] ?? 'now')) ?>
-                                    </small>
+                                    <?php if (in_array(strtolower($fileExtension), ['jpg', 'jpeg', 'png', 'gif', 'webp'])): ?>
+                                    <img src="<?= $imageUrl ?>" class="card-img-top img-fluid float-end"
+                                        style="object-fit: cover; border-radius: 10px; float: right; height: 13rem;"
+                                        alt="News Image">
+                                    <?php elseif (in_array(strtolower($fileExtension), ['mp4', 'webm', 'ogg'])): ?>
+                                    <video class="card-img-top img-fluid float-end"
+                                        style="object-fit: contain; border-radius: 10px; float: right; height: 13rem; width: 100%;"
+                                        controls muted>
+                                        <source src="<?= $imageUrl ?>" type="video/<?= $fileExtension ?>">
+                                        Your browser does not support the video tag.
+                                    </video>
+                                    <?php else: ?>
+                                    <img src="<?= $imageUrl ?>" class="card-img-top img-fluid float-end"
+                                        style="object-fit: cover; border-radius: 10px; float: right; height: 13rem;"
+                                        alt="Placeholder Image">
+                                    <?php endif; ?>
+                                </div>
+                                <hr class="mt-4 mb-4">
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
 
+                        <!-- Kolom Kanan -->
+                        <div class="col-md-4 mt-4">
+                            <h4 class="mt-3 mb-3">Search</h4>
+                            <form class="d-flex" method="get" action="index.php">
+                                <input class="form-control me-2" type="search" name="search" placeholder="Search"
+                                    value="<?= htmlspecialchars($searchQuery) ?>">
+                                <button class="btn btn-danger " type="submit"><i class="bi bi-search"></i></button>
+                            </form>
+
+                            <div class="video mt-4">
+                                <h4 class="mt-3 mb-3">Berita Terlama</h4>
+                                <div class="card position-relative" style="height: 18rem;">
+                                    <!-- Gambar -->
+                                    <?php
+                                        $fileExtension = pathinfo($news['media'], PATHINFO_EXTENSION);
+                                        $imageUrl = isset($news['media']) ? 'uploads/' . $news['media'] : 'https://placehold.co/600x400';
+                                        ?>
+
+                                    <?php if (in_array(strtolower($fileExtension), ['jpg', 'jpeg', 'png', 'gif', 'webp'])): ?>
+                                    <img src="<?= $imageUrl ?>" class="card-img-top img-fluid"
+                                        style="object-fit: cover; height: 100%; border-radius: 4px;" alt="News Image">
+                                    <?php elseif (in_array(strtolower($fileExtension), ['mp4', 'webm', 'ogg'])): ?>
+                                    <video class="card-img-top img-fluid"
+                                        style="object-fit: cover; height: 100%; border-radius: 4px;" controls muted>
+                                        <source src="<?= $imageUrl ?>" type="video/<?= $fileExtension ?>">
+                                        Your browser does not support the video tag.
+                                    </video>
+                                    <?php else: ?>
+                                    <img src="<?= $imageUrl ?>" class="card-img-top img-fluid"
+                                        style="object-fit: cover; height: 100%; border-radius: 4px;"
+                                        alt="Placeholder Image">
+                                    <?php endif; ?>
+
+                                    <!-- Konten Overlay -->
+                                    <div class="card-img-overlay d-flex flex-column justify-content-end"
+                                        style="background: rgba(0, 0, 0, 0.2); color: white; border-radius: 4px;">
+                                        <!-- Kategori -->
+                                        <!-- <span class="badge bg-danger mb-2"><?= htmlspecialchars($news['category']) ?></span> -->
+
+                                        <!-- Judul Berita -->
+                                        <h5 class="card-title fw-bold mb-1"><?= htmlspecialchars($news['title']) ?></h5>
+
+                                        <!-- Tanggal -->
+                                        <small class="text-light mb-2">
+                                            <?= date('d M Y', strtotime($news['date'] ?? 'now')) ?>
+                                        </small>
+
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="listKategori">
+                                <div class="card mt-4">
+                                    <h4 class="p-2">Categories</h4>
+                                    <ul class="list-group list-group-flush">
+                                        <?php
+                                            $sortedCategories = $categories;
+                                            usort($sortedCategories, function ($a, $b) {
+                                                return ($a['views'] ?? 0) < ($b['views'] ?? 0);
+                                            });
+                                            foreach ($sortedCategories as $category):
+                                        ?>
+                                            <li class="list-group-item p-0">
+                                                <a href="index.php?category=<?= $category->name ?>" 
+                                                class="d-block text-decoration-none text-dark py-2 px-3">
+                                                    <?= ucwords($category->name) ?>
+                                                </a>
+                                            </li>
+                                        <?php endforeach; ?>
+                                    </ul>
+                                </div>
+
+                            </div>
+
+                            <div class="topPost mt-4">
+                                <div class="card">
+                                    <h4 class="p-2">Top Posts</h4>
+                                    <ul class="list-group list-group-flush">
+                                        <?php
+                                            $topPosts = $newsCollection->find(
+                                                ['created_at' => ['$gte' => new MongoDB\BSON\UTCDateTime(strtotime('-30 days') * 1000)]],
+                                                ['sort' => ['views' => -1], 'limit' => 5]
+                                            );
+                                            $counter = 1; // Inisialisasi angka
+                                            foreach ($topPosts as $post):
+                                            ?>
+                                        <li class=" list-group-item d-flex align-items-start">
+                                            <span class="me-3 fw-bold"><?= $counter++; ?>.</span> <!-- Angka -->
+                                            <div>
+                                                <h6 class="fw-semibold mb-1">
+                                                    <a href="detail.php?id=<?= $post['_id'] ?>"
+                                                        class="text-decoration-none text-dark">
+                                                        <?= htmlspecialchars($post['title']) ?>
+                                                    </a>
+                                                </h6>
+                                                <p class="mb-0 text-muted">
+                                                    <?= $news['created_at']->toDateTime()->format('d M Y') ?>
+                                                </p>
+                                            </div>
+                                        </li>
+                                        <?php endforeach; ?>
+                                    </ul>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="listKategori">
-                            <div class="card mt-4">
-                                <h4 class="p-2">Categories</h4>
-                                <ul class="list-group list-group-flush">
-                                    <li class="list-group-item">
-                                        <h6 class="fw-semibold">Bencana</h6>
-                                    </li>
-                                    <li class="list-group-item">
-                                        <h6 class="fw-semibold">Bencana</h6>
-                                    </li>
-                                    <li class="list-group-item">
-                                        <h6 class="fw-semibold">Bencana</h6>
-                                    </li>
-                                    <li class="list-group-item">
-                                        <h6 class="fw-semibold">Bencana</h6>
-                                    </li>
-                                </ul>
-                            </div>
-
-                        </div>
-
-                        <div class="topPost mt-4">
-                            <div class="card">
-                                <h4 class="p-2">Top Posts</h4>
-                                <ul class="list-group list-group-flush">
-                                    <?php
-                                        $topPosts = $collection->find(
-                                            ['created_at' => ['$gte' => new MongoDB\BSON\UTCDateTime(strtotime('-30 days') * 1000)]],
-                                            ['sort' => ['views' => -1], 'limit' => 5]
-                                        );
-                                        $counter = 1; // Inisialisasi angka
-                                        foreach ($topPosts as $post):
-                                        ?>
-                                    <li class=" list-group-item d-flex align-items-start">
-                                        <span class="me-3 fw-bold"><?= $counter++; ?>.</span> <!-- Angka -->
-                                        <div>
-                                            <h6 class="fw-semibold mb-1">
-                                                <a href="detail.php?id=<?= $post['_id'] ?>"
-                                                    class="text-decoration-none text-dark">
-                                                    <?= htmlspecialchars($post['title']) ?>
-                                                </a>
-                                            </h6>
-                                            <p class="mb-0 text-muted">
-                                                <?= $news['created_at']->toDateTime()->format('d M Y') ?>
-                                            </p>
-                                        </div>
-                                    </li>
-                                    <?php endforeach; ?>
-                                </ul>
-                            </div>
-                        </div>
-
-
-
+                        <!-- tutup -->
                     </div>
-
-
-
-                    <!-- tutup -->
-                </div>
 
                 <?php endif; ?>
             </div>
