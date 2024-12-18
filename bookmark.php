@@ -192,7 +192,7 @@
 
     <script src="bookmark.js"></script>
     <script>
-        function buildBookmarkHtml(
+        function bookmarkHtmlBuilder(
             id,
             title,
             summary,
@@ -277,7 +277,7 @@
             }
             bookmark.getListId().forEach(id => {
                 const news = bookmark.bookmarks[id];
-                const bookmarkHtml = buildBookmarkHtml(
+                const bookmarkHtml = bookmarkHtmlBuilder(
                     id,
                     news['title'],
                     news['summary'],
