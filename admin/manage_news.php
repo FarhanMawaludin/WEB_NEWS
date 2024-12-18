@@ -45,11 +45,14 @@
                         <a class="nav-link" href="add_news.php">Tambah Berita</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="manage_category.php">Kelola Kategori</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="logout.php">
-                            <button class="btn btn-danger btn-sm">  
-                            Logout
+                            <button class="btn btn-danger btn-sm">
+                                Logout
                             </button>
-                        </a> 
+                        </a>
                     </li>
                 </ul>
             </div>

@@ -178,7 +178,6 @@
             <h4 class="mt-3 mb-3 fw-semibold">Your Bookmark</h4>
             <?php if (count($newsList) > 0 && !$searchQuery && !$categoryFilter): ?>
             <div class="container">
-                <?php foreach (array_slice($newsList, 1) as $news): ?>
                 <div class="row">
                     <div class="col-md-4 text-end">
                         <img src="<?= isset($news['media']) ? 'uploads/' . $news['media'] : 'https://placehold.co/60x60' ?>"
@@ -190,23 +189,19 @@
                         <div class="d-flex align-items-center mt-2 mb-2">
                             <i class="fas fa-user-circle me-2" style=" font-size: 40px; color: #6c757d;"></i>
                             <div>
-                                <span class="fw-semibold"><?= htmlspecialchars($news['author']) ?></span>
+                                <span class="fw-semibold">Nama Author</span>
                                 <p class="mb-0 text-muted" style="font-size: 12px;">
-                                    <?= $news['created_at']->toDateTime()->format('l, d M Y') ?></p>
+                                    Senin, 12 Mei 24</p>
                             </div>
                         </div>
 
 
                         <a href="detail.php?id=<?= $news['_id'] ?>"
-                            class="card-title card-text-custom fw-semibold mb-2 fs-5 text-decoration-none"><?= $news['title'] ?></a>
-                        <p class="card-text card-text-custom "><?= $news['summary'] ?></p>
+                            class="card-title card-text-custom fw-semibold mb-2 fs-5 text-decoration-none">Judulnya Apa
+                            disinisi?</a>
+                        <p class="card-text card-text-custom ">isi konten atau summary isi konten atau summaryisi konten
+                            atau summary</p>
                         <div class="d-flex justify-content-between align-items-center mt-3">
-                            <!-- Tanggal di kiri -->
-                            <!-- <p class="mb-0"><?= $news['created_at']->toDateTime()->format('l, d M Y') ?><i
-                                    class="bi bi-dot"></i>
-                                <i class="bi bi-eye me-2"> <?= $news["views"] ?? 0 ?> Views</i>
-                            </p> -->
-
 
                             <!-- Ikon di kanan -->
                             <div class="d-flex align-items-center me-3">
@@ -214,14 +209,6 @@
                                 <button class="btn border-0 p-0 bookmark-btn me-2" id="bookmarkBtn">
                                     <i class="bi bi-bookmark-fill" id="bookmarkIcon"></i>
                                 </button>
-                                <!-- <button class="btn p-0 me-2 border-0">
-                                    <i class=" bi bi-bookmark-fill"></i>
-                                </button> -->
-                                <!-- Like/Love -->
-                                <!-- <button class="me-2">
-                                    <i class="bi bi-heart"></i>
-                                </button> -->
-                                <!-- Share -->
                                 <button class="btn p-0 border-0 ">
                                     <i class="bi bi-share"></i>
                                 </button>
@@ -232,7 +219,6 @@
 
                     <hr class="mt-4 mb-4">
                 </div>
-                <?php endforeach; ?>
             </div>
             <?php endif; ?>
         </div>
