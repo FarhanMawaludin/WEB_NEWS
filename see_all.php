@@ -251,8 +251,22 @@ $newsList = iterator_to_array($cursor);
                     <div class="col-md-4 mb-4">
                         <div class="card">
                             <a href="detail.php?id=<?= $news['_id'] ?>" class="text-decoration-none text-black">
-                                <img src="<?= isset($news['media']) ? 'uploads/' . $news['media'] : 'https://placehold.co/300x200' ?>"
-                                    class="card-img-top" height="200rem" style="object-fit: cover;" alt=" News Image">
+                                <?php
+$fileExtension = isset($news['media']) ? pathinfo($news['media'], PATHINFO_EXTENSION) : '';
+$mediaUrl = isset($news['media']) ? 'uploads/' . $news['media'] : 'https://placehold.co/300x200';
+?>
+
+<?php if (in_array(strtolower($fileExtension), ['jpg', 'jpeg', 'png', 'gif', 'webp'])): ?>
+    <img src="<?= $mediaUrl ?>" class="card-img-top" height="200rem" style="object-fit: cover;" alt="News Image">
+<?php elseif (in_array(strtolower($fileExtension), ['mp4', 'webm', 'ogg'])): ?>
+    <video class="card-img-top" height="200rem" style="object-fit: cover;" controls muted>
+        <source src="<?= $mediaUrl ?>" type="video/<?= strtolower($fileExtension) ?>">
+        Your browser does not support the video tag.
+    </video>
+<?php else: ?>
+    <img src="https://placehold.co/300x200" class="card-img-top" height="200rem" style="object-fit: cover;" alt="Placeholder Image">
+<?php endif; ?>
+
                                 <div class="card-body">
                                     <span class="badge bg-danger mb-2"><?= htmlspecialchars($news['category']) ?></span>
                                     <h5 class="card-title card-text-custom fw-semibold"><?= $news['title'] ?></h5>
