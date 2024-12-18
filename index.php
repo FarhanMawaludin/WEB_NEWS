@@ -277,7 +277,6 @@ $newsList = iterator_to_array($cursor);
                                             <span class="badge bg-danger mb-2"><?= htmlspecialchars($news['category']) ?></span>
                                             <h5 class="card-title card-text-custom fw-semibold"><?= $news['title'] ?></h5>
                                             <p class="card-text card-text-custom"><?= $news['summary'] ?></p>
-                                            <!-- <a href="detail.php?id=<?= $news['_id'] ?>" class="btn btn-danger">Selengkapnya</a> -->
                                         </div>
                                     </a>
                                 </div>
@@ -346,7 +345,7 @@ $newsList = iterator_to_array($cursor);
                                 <a href="detail.php?id=<?= $news['_id'] ?>" class="text-decoration-none text-white">
                                     <!-- Judul Berita -->
                                     <h2 class="card-title fw-bold mb-1"><?= htmlspecialchars($news['title']) ?></h2>
-
+ 
                                     <h6 class="card-title card-text-custom mb-3 "><?= htmlspecialchars($news['summary']) ?>
                                     </h6>
                                     <!-- Tanggal -->
@@ -420,7 +419,7 @@ $newsList = iterator_to_array($cursor);
                                             <div class="d-flex align-items-center me-3">
                                                 <!-- Bookmark -->
                                                 <!-- <button class="" style="margin-right: 0px;"> -->
-                                                <i class=" bi bi-bookmark me-2"></i>
+                                                <i id="bookmark-<?= $news['_id'] ?>" class="bi bi-bookmark me-2" onclick="toggleBookmark('<?= $news['_id'] ?>')" style="cursor: pointer"></i>
                                                 <!-- </button> -->
                                                 <!-- Like/Love -->
                                                 <!-- <button class="me-2">
@@ -581,6 +580,37 @@ $newsList = iterator_to_array($cursor);
         </footer>
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="bookmark.js"></script>
+        <script>
+            const bookmark = new Bookmark();
+
+            function toggleBookmark(id) {
+                if (bookmark.isBookmarked(id)) {
+                    bookmark.remove(id);
+                    document.getElementById('bookmark-' + id).classList.remove('bi-bookmark-check-fill');
+                    document.getElementById('bookmark-' + id).classList.remove('text-primary');
+                    document.getElementById('bookmark-' + id).classList.add('bi-bookmark');
+                    alert("Bookmark telah di hapus");
+                } else {
+                    bookmark.add(id);
+                    document.getElementById('bookmark-' + id).classList.remove('bi-bookmark');
+                    document.getElementById('bookmark-' + id).classList.add('bi-bookmark-check-fill');
+                    document.getElementById('bookmark-' + id).classList.add('text-primary');
+                    alert("Bookmark telah di simpan");
+                }
+            }
+
+            function initBookmark() {
+                if (bookmark.getList().length > 0) {
+                    bookmark.getList().forEach(id => {
+                        document.getElementById('bookmark-' + id).classList.remove('bi-bookmark');
+                        document.getElementById('bookmark-' + id).classList.add('bi-bookmark-check-fill');
+                        document.getElementById('bookmark-' + id).classList.add('text-primary');
+                    });
+                }
+            }
+            initBookmark();
+        </script>
 </body>
 
 </html>
