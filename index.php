@@ -608,18 +608,17 @@ $newsList = iterator_to_array($cursor);
 
         function toggleBookmark(id) {
             if (bookmark.isBookmarked(id)) {
-                if (!confirm("Apakah Anda yakin ingin menghapus bookmark ini?")) {
-                    return;
-                }
                 bookmark.remove(id);
                 document.getElementById('bookmark-' + id).classList.remove('bi-bookmark-check-fill');
                 document.getElementById('bookmark-' + id).classList.remove('text-primary');
                 document.getElementById('bookmark-' + id).classList.add('bi-bookmark');
+                alert("Bookmark telah di hapus");
             } else {
                 bookmark.add(id);
                 document.getElementById('bookmark-' + id).classList.remove('bi-bookmark');
                 document.getElementById('bookmark-' + id).classList.add('bi-bookmark-check-fill');
                 document.getElementById('bookmark-' + id).classList.add('text-primary');
+                alert("Bookmark telah di simpan");
             }
         }
 

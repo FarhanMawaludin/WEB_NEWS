@@ -211,9 +211,7 @@ try {
                 <i class="bi bi-eye me-2"> <?= $news["views"] ?? 0 ?> Views</i>
                 <div class="d-flex ms-auto">
                     <!-- Tombol bookmark -->
-                    <button class="btn bookmark-btn" id="bookmarkBtn">
-                        <i class="bi bi-bookmark" id="bookmarkIcon"></i>
-                    </button>
+                    <i id="bookmark-<?= $news['_id'] ?>" class="bi bi-bookmark me-2" onclick="toggleBookmark('<?= $news['_id'] ?>')" style="cursor: pointer"></i>
                 </div>
             </div>
 
@@ -298,22 +296,33 @@ try {
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="bookmark.js"></script>
     <script>
-    const bookmarkBtn = document.getElementById('bookmarkBtn');
-    const bookmarkIcon = document.getElementById('bookmarkIcon');
+        const bookmark = new Bookmark();
 
-    // Tambahkan event listener untuk klik tombol
-    bookmarkBtn.addEventListener('click', function() {
-        // Toggle class 'fw-bold' untuk membuat teks bold
-        bookmarkIcon.classList.toggle('fw-bold');
-
-        // Ubah ikon bookmark (bisa dari 'bi-bookmark' ke 'bi-bookmark-fill')
-        if (bookmarkIcon.classList.contains('bi-bookmark')) {
-            bookmarkIcon.classList.replace('bi-bookmark', 'bi-bookmark-fill');
-        } else {
-            bookmarkIcon.classList.replace('bi-bookmark-fill', 'bi-bookmark');
+        function toggleBookmark(id) {
+            if (bookmark.isBookmarked(id)) {
+                if (!confirm("Apakah Anda yakin ingin menghapus bookmark ini?")) {
+                    return;
+                }
+                bookmark.remove(id);
+                document.getElementById('bookmark-' + id).classList.remove('bi-bookmark-check-fill');
+                document.getElementById('bookmark-' + id).classList.remove('text-primary');
+                document.getElementById('bookmark-' + id).classList.add('bi-bookmark');
+            } else {
+                bookmark.add(id);
+                document.getElementById('bookmark-' + id).classList.remove('bi-bookmark');
+                document.getElementById('bookmark-' + id).classList.add('bi-bookmark-check-fill');
+                document.getElementById('bookmark-' + id).classList.add('text-primary');
+            }
         }
-    });
+
+        if (bookmark.isBookmarked('<?= $news['_id'] ?>')) {
+            document.getElementById('bookmark-<?= $news['_id'] ?>').classList.remove('bi-bookmark');
+            document.getElementById('bookmark-<?= $news['_id'] ?>').classList.add('bi-bookmark-check-fill');
+            document.getElementById('bookmark-<?= $news['_id'] ?>').classList.add('text-primary');
+        }
     </script>
 </body>
 
