@@ -268,7 +268,7 @@
                 <div class="text-center mt-5">
                     <i class="bi bi-bookmark text-muted" style="font-size: 4rem;"></i>
                     <p class="text-muted mt-3 fs-5">Your bookmark list is empty</p>
-                    <p class="text-muted">Start adding your favorite articles to keep them here!</p>
+                    <p class="text-muted">Start adding your favorite news to keep them here!</p>
                 </div>
             `;
 
@@ -297,7 +297,7 @@
             if (!bookmark.isBookmarked(id)) {
                 return;
             }
-            
+
             if (!confirm("Apakah Anda yakin ingin menghapus bookmark ini?")) {
                 return;
             }
