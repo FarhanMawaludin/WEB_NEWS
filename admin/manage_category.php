@@ -51,7 +51,7 @@ $categories = iterator_to_array($categoriesCursor);
                     <a class="nav-link" href="manage_news.php">Kelola Berita</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link active" href="manage_categories.php">Kelola Kategori</a>
+                    <a class="nav-link active" href="manage_category.php">Kelola Kategori</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="logout.php">
