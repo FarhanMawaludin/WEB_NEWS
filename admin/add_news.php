@@ -51,11 +51,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if ($uploadOk) {
         if (move_uploaded_file($_FILES["media"]["tmp_name"], $target_file)) {
             $result = $collection->insertOne([
-                'title' => $_POST['title'],
+                'title' => htmlspecialchars($_POST['title']),
                 'content' => $_POST['content'],
-                'summary' => $_POST['summary'],
-                'author' => $_POST['author'],
-                'category' => $_POST['category'],
+                'summary' => htmlspecialchars($_POST['summary']),
+                'author' => htmlspecialchars($_POST['author']),
+                'category' => htmlspecialchars($_POST['category']),
                 'created_at' => new MongoDB\BSON\UTCDateTime(),
                 'updated_at' => new MongoDB\BSON\UTCDateTime(),
                 'media' => basename($_FILES["media"]["name"]), // Simpan hanya nama file

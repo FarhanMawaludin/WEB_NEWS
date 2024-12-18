@@ -34,10 +34,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $old_media_path = $media_path;
 
     // Cek apakah file baru diunggah
+    $uploadOk = 1;
     if (!empty($_FILES["media"]["name"])) {
-        $media_name = uniqid() . "_" . basename($_FILES["media"]["name"]);
-        $target_file = $target_dir . $media_name;
-        $uploadOk = 1;
+        $media_name =  uniqid() . "_" . basename($_FILES["media"]["name"]);
+        $target_file = __DIR__ . '/' . $target_dir . $media_name;
+        // var_dump($target_file);
         $fileType = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
 
         // Tipe file yang diperbolehkan
@@ -63,48 +64,48 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $uploadOk = 0;
         }
 
-        // Cek jika file sudah ada
-        if (file_exists($target_file)) {
-            $message = "File sudah ada. Silakan ganti nama file atau unggah file yang berbeda.";
-            $uploadOk = 0;
-        }
-
         // Proses upload file baru
         if ($uploadOk) {
             if (move_uploaded_file($_FILES["media"]["tmp_name"], $target_file)) {
                 $media_path = $media_name; // Simpan hanya nama file
+                var_dump($media_path);
             } else {
                 $message = "Gagal mengunggah file.";
+                $uploadOk = 0;
             }
         }
     }
+    // var_dump($media_path, $message, $uploadOk, );
+    // die();
 
+    if ($uploadOk) {
     // Update data di database
-    $result = $collection->updateOne(
-        ['_id' => $id],
-        [
-            '$set' => [
-                'title' => htmlspecialchars($_POST['title']),
-                'content' => htmlspecialchars($_POST['content']),
-                'summary' => htmlspecialchars($_POST['summary']),
-                'author' => htmlspecialchars($_POST['author']),
-                'category' => htmlspecialchars($_POST['category']),
-                'updated_at' => new MongoDB\BSON\UTCDateTime(),
-                'media' => $media_path
+        $result = $collection->updateOne(
+            ['_id' => $id],
+            [
+                '$set' => [
+                    'title' => htmlspecialchars($_POST['title']),
+                    'content' => $_POST['content'],
+                    'summary' => htmlspecialchars($_POST['summary']),
+                    'author' => htmlspecialchars($_POST['author']),
+                    'category' => htmlspecialchars($_POST['category']),
+                    'updated_at' => new MongoDB\BSON\UTCDateTime(),
+                    'media' => $media_path
+                ]
             ]
-        ]
-    );
+        );
 
-    if ($result->getModifiedCount() > 0) {
-        // Hapus file lama jika media diperbarui
-        if ($media_path !== $old_media_path && file_exists($target_dir . $old_media_path)) {
-            unlink($target_dir . $old_media_path);
+        if ($result->getModifiedCount() > 0) {
+            // Hapus file lama jika media diperbarui
+            if ($media_path !== $old_media_path && file_exists($target_dir . $old_media_path)) {
+                unlink($target_dir . $old_media_path);
+            }
+            $message = "Berita berhasil diupdate!";
+            header('Location: manage_news.php');
+            exit;
+        } else {
+            $message = "Tidak ada perubahan yang disimpan.";
         }
-        $message = "Berita berhasil diupdate!";
-        header('Location: manage_news.php');
-        exit;
-    } else {
-        $message = "Tidak ada perubahan yang disimpan.";
     }
 }
 ?>
