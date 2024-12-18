@@ -296,7 +296,11 @@
         ){
             if (!bookmark.isBookmarked(id)) {
                 return;
-            } 
+            }
+            
+            if (!confirm("Apakah Anda yakin ingin menghapus bookmark ini?")) {
+                return;
+            }
 
             bookmark.remove(id);
             document.getElementById('bookmark-' + id).classList.remove('bi-bookmark-check-fill');

@@ -551,6 +551,10 @@ $newsList = iterator_to_array($cursor);
             date
         ){
             if (bookmark.isBookmarked(id)) {
+                if (!confirm("Apakah Anda yakin ingin menghapus bookmark ini?")) {
+                    return;
+                }
+
                 bookmark.remove(id);
                 document.getElementById('bookmark-' + id).classList.remove('bi-bookmark-check-fill');
                 document.getElementById('bookmark-' + id).classList.remove('text-primary');
