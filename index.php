@@ -120,6 +120,7 @@ $newsList = iterator_to_array($cursor);
                             <a class="dropdown-item" href="index.php?category=pendidikan">Pendidikan</a>
                         </div>
                     </li>
+                    <li class="nav-item"><a class="nav-link" href="bookmark.php">Bookmark</a></li>
                 </ul>
                 <form class="d-flex" method="get" action="index.php">
                     <input class="form-control me-2" type="search" name="search" placeholder="Search"
@@ -152,7 +153,7 @@ $newsList = iterator_to_array($cursor);
                     <?php
                         $fileExtension = pathinfo($newsList[0]['media'], PATHINFO_EXTENSION);
                         $imageUrl = isset($newsList[0]['media']) ? 'uploads/' . $newsList[0]['media'] : '';
-                        ?>
+                    ?>
 
                     <?php if ($imageUrl && in_array(strtolower($fileExtension), ['jpg', 'jpeg', 'png', 'gif', 'webp'])): ?>
                     <img src="<?= $imageUrl ?>" class="card-img" alt="Featured News Image" style="border-radius: 8px;">
@@ -207,8 +208,8 @@ $newsList = iterator_to_array($cursor);
                     <div class="col-md-3 mb-4">
                         <div class="card">
                             <?php
-                                                $fileExtension = isset($news['image']) ? pathinfo($news['image'], PATHINFO_EXTENSION) : '';
-                                                $imageUrl = isset($news['image']) && !empty($news['image']) ? 'images/' . htmlspecialchars($news['image']) : '';
+                                                $fileExtension = isset($news['media']) ? pathinfo($news['media'], PATHINFO_EXTENSION) : '';
+                                                $imageUrl = isset($news['media']) && !empty($news['media']) ? 'uploads/' . htmlspecialchars($news['media']) : '';
                                                 ?>
 
                             <?php if ($imageUrl && in_array(strtolower($fileExtension), ['jpg', 'jpeg', 'png', 'gif', 'webp'])): ?>
@@ -283,16 +284,16 @@ $newsList = iterator_to_array($cursor);
                                 alt="Placeholder Image">
                             <?php endif; ?>
 
-                                        <div class="card-body">
-                                            <span class="badge bg-danger mb-2"><?= htmlspecialchars($news['category']) ?></span>
-                                            <h5 class="card-title card-text-custom fw-semibold"><?= $news['title'] ?></h5>
-                                            <p class="card-text card-text-custom"><?= $news['summary'] ?></p>
-                                        </div>
-                                    </a>
-                                </div>
+                            <div class="card-body">
+                                <span class="badge bg-danger mb-2"><?= htmlspecialchars($news['category']) ?></span>
+                                <h5 class="card-title card-text-custom fw-semibold"><?= $news['title'] ?></h5>
+                                <p class="card-text card-text-custom"><?= $news['summary'] ?></p>
                             </div>
-                        <?php endforeach; ?>
+                        </a>
+                    </div>
                 </div>
+                <?php endforeach; ?>
+            </div>
 
 
             <div class="container  my-4">
@@ -354,14 +355,14 @@ $newsList = iterator_to_array($cursor);
                                 <i class="bi bi-dot"></i>
                                 <?= date('d M Y', strtotime($news['date'] ?? 'now')) ?>
 
-                                </span>
-                                <a href="detail.php?id=<?= $news['_id'] ?>" class="text-decoration-none text-white">
-                                    <!-- Judul Berita -->
-                                    <h2 class="card-title fw-bold mb-1"><?= htmlspecialchars($news['title']) ?></h2>
- 
-                                    <h6 class="card-title card-text-custom mb-3 "><?= htmlspecialchars($news['summary']) ?>
-                                    </h6>
-                                    <!-- Tanggal -->
+                            </span>
+                            <a href="detail.php?id=<?= $news['_id'] ?>" class="text-decoration-none text-white">
+                                <!-- Judul Berita -->
+                                <h2 class="card-title fw-bold mb-1"><?= htmlspecialchars($news['title']) ?></h2>
+
+                                <h6 class="card-title card-text-custom mb-3 "><?= htmlspecialchars($news['summary']) ?>
+                                </h6>
+                                <!-- Tanggal -->
 
                             </a>
                         </div>
@@ -431,14 +432,15 @@ $newsList = iterator_to_array($cursor);
                                     </p>
 
 
-                                            <!-- Ikon di kanan -->
-                                            <div class="d-flex align-items-center me-3">
-                                                <!-- Bookmark -->
-                                                <!-- <button class="" style="margin-right: 0px;"> -->
-                                                <i id="bookmark-<?= $news['_id'] ?>" class="bi bi-bookmark me-2" onclick="toggleBookmark('<?= $news['_id'] ?>')" style="cursor: pointer"></i>
-                                                <!-- </button> -->
-                                                <!-- Like/Love -->
-                                                <!-- <button class="me-2">
+                                    <!-- Ikon di kanan -->
+                                    <div class="d-flex align-items-center me-3">
+                                        <!-- Bookmark -->
+                                        <!-- <button class="" style="margin-right: 0px;"> -->
+                                        <i id="bookmark-<?= $news['_id'] ?>" class="bi bi-bookmark me-2"
+                                            onclick="toggleBookmark('<?= $news['_id'] ?>')" style="cursor: pointer"></i>
+                                        <!-- </button> -->
+                                        <!-- Like/Love -->
+                                        <!-- <button class="me-2">
                                     <i class="bi bi-heart"></i>
                                 </button> -->
                                         <!-- Share -->
@@ -602,34 +604,35 @@ $newsList = iterator_to_array($cursor);
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
         <script src="bookmark.js"></script>
         <script>
-            const bookmark = new Bookmark();
+        const bookmark = new Bookmark();
 
-            function toggleBookmark(id) {
-                if (bookmark.isBookmarked(id)) {
-                    bookmark.remove(id);
-                    document.getElementById('bookmark-' + id).classList.remove('bi-bookmark-check-fill');
-                    document.getElementById('bookmark-' + id).classList.remove('text-primary');
-                    document.getElementById('bookmark-' + id).classList.add('bi-bookmark');
-                    alert("Bookmark telah di hapus");
-                } else {
-                    bookmark.add(id);
+        function toggleBookmark(id) {
+            if (bookmark.isBookmarked(id)) {
+                if (!confirm("Apakah Anda yakin ingin menghapus bookmark ini?")) {
+                    return;
+                }
+                bookmark.remove(id);
+                document.getElementById('bookmark-' + id).classList.remove('bi-bookmark-check-fill');
+                document.getElementById('bookmark-' + id).classList.remove('text-primary');
+                document.getElementById('bookmark-' + id).classList.add('bi-bookmark');
+            } else {
+                bookmark.add(id);
+                document.getElementById('bookmark-' + id).classList.remove('bi-bookmark');
+                document.getElementById('bookmark-' + id).classList.add('bi-bookmark-check-fill');
+                document.getElementById('bookmark-' + id).classList.add('text-primary');
+            }
+        }
+
+        function initBookmark() {
+            if (bookmark.getList().length > 0) {
+                bookmark.getList().forEach(id => {
                     document.getElementById('bookmark-' + id).classList.remove('bi-bookmark');
                     document.getElementById('bookmark-' + id).classList.add('bi-bookmark-check-fill');
                     document.getElementById('bookmark-' + id).classList.add('text-primary');
-                    alert("Bookmark telah di simpan");
-                }
+                });
             }
-
-            function initBookmark() {
-                if (bookmark.getList().length > 0) {
-                    bookmark.getList().forEach(id => {
-                        document.getElementById('bookmark-' + id).classList.remove('bi-bookmark');
-                        document.getElementById('bookmark-' + id).classList.add('bi-bookmark-check-fill');
-                        document.getElementById('bookmark-' + id).classList.add('text-primary');
-                    });
-                }
-            }
-            initBookmark();
+        }
+        initBookmark();
         </script>
 </body>
 

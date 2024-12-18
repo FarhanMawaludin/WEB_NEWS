@@ -120,6 +120,8 @@
                             <a class="dropdown-item" href="index.php?category=pendidikan">Pendidikan</a>
                         </div>
                     </li>
+                    <li class="nav-item"><a class="nav-link" href="bookmark.php">Bookmark</a></li>
+
                 </ul>
                 <form class="d-flex" method="get" action="index.php">
                     <input class="form-control me-2" type="search" name="search" placeholder="Search"
@@ -155,7 +157,7 @@
                     <?php foreach ($newsList as $news): ?>
                     <div class="col-md-3 mb-4">
                         <div class="card">
-                            <img src="<?= isset($news['image']) ? 'images/' . $news['image'] : 'https://placehold.co/300x200' ?>"
+                            <img src="<?= isset($news['media']) ? 'uploads/' . $news['media'] : 'https://placehold.co/300x200' ?>"
                                 class="card-img-top" height="240rem" style="object-fit: cover;" alt="News Image">
                             <div class="card-body">
                                 <h5 class="card-title card-text-custom fw-semibold"><?= $news['title'] ?></h5>
@@ -179,7 +181,7 @@
                 <?php foreach (array_slice($newsList, 1) as $news): ?>
                 <div class="row">
                     <div class="col-md-4 text-end">
-                        <img src="<?= isset($news['image']) ? 'images/' . $news['image'] : 'https://placehold.co/60x60' ?>"
+                        <img src="<?= isset($news['media']) ? 'uploads/' . $news['media'] : 'https://placehold.co/60x60' ?>"
                             class="card-img-top img-fluid float-end"
                             style=" object-fit: cover; border-radius: 10px; float: right; height: 13rem;"
                             alt="News Image">

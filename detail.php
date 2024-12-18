@@ -150,6 +150,8 @@ try {
                             <a class="dropdown-item" href="index.php?category=pendidikan">Pendidikan</a>
                         </div>
                     </li>
+                    <li class="nav-item"><a class="nav-link" href="bookmark.php">Bookmark</a></li>
+
                 </ul>
                 <form class="d-flex" method="get" action="index.php">
                     <input class="form-control me-2" type="search" name="search" placeholder="Search"
@@ -205,6 +207,8 @@ try {
                 <span class="fw-semibold fs-5"><?= htmlspecialchars($news['author']) ?></span>
                 <span class="mx-3"><?= $news['created_at']->toDateTime()->format('Y-m-d H:i:s') ?></span>
                 <span class="text-danger fw-semibold"><?= htmlspecialchars($news['category']) ?></span>
+                <i class="bi bi-dot"></i>
+                <i class="bi bi-eye me-2"> <?= $news["views"] ?? 0 ?> Views</i>
                 <div class="d-flex ms-auto">
                     <!-- Tombol bookmark -->
                     <button class="btn bookmark-btn" id="bookmarkBtn">
