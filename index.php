@@ -208,9 +208,9 @@ $newsList = iterator_to_array($cursor);
                     <div class="col-md-3 mb-4">
                         <div class="card">
                             <?php
-                                                $fileExtension = isset($news['media']) ? pathinfo($news['media'], PATHINFO_EXTENSION) : '';
-                                                $imageUrl = isset($news['media']) && !empty($news['media']) ? 'uploads/' . htmlspecialchars($news['media']) : '';
-                                                ?>
+                                $fileExtension = isset($news['media']) ? pathinfo($news['media'], PATHINFO_EXTENSION) : '';
+                                $imageUrl = isset($news['media']) && !empty($news['media']) ? 'uploads/' . htmlspecialchars($news['media']) : '';
+                            ?>
 
                             <?php if ($imageUrl && in_array(strtolower($fileExtension), ['jpg', 'jpeg', 'png', 'gif', 'webp'])): ?>
                             <img src="<?= $imageUrl ?>" class="card-img-top"
@@ -375,7 +375,7 @@ $newsList = iterator_to_array($cursor);
                                             <!-- Bookmark -->
                                             <!-- <button class="" style="margin-right: 0px;"> -->
                                             <i id="bookmark-<?= $news['_id'] ?>" class="bi bi-bookmark me-2"
-                                                onclick="toggleBookmark('<?= $news['_id'] ?>')" style="cursor: pointer"></i>
+                                                onclick="toggleBookmark('<?= $news['_id'] ?>', '<?= $news['title'] ?>', '<?= $news['summary'] ?>', '<?= $news['author'] ?>','<?= $news['media'] ?>', '<?= pathinfo($news['media'], PATHINFO_EXTENSION) ?>', '<?= date('d M Y', strtotime($news['date'] ?? 'now'))?>')" style="cursor: pointer"></i>
                                             <!-- </button> -->
                                             <!-- Like/Love -->
                                             <!-- <button class="me-2">
@@ -477,7 +477,7 @@ $newsList = iterator_to_array($cursor);
                                             usort($sortedCategories, function ($a, $b) {
                                                 return ($a['views'] ?? 0) < ($b['views'] ?? 0);
                                             });
-                                            foreach ($sortedCategories as $category):
+                                            foreach (array_slice($sortedCategories, 0, 6) as $category):
                                         ?>
                                             <li class="list-group-item p-0">
                                                 <a href="index.php?category=<?= $category->name ?>" 
@@ -541,7 +541,15 @@ $newsList = iterator_to_array($cursor);
         <script>
         const bookmark = new Bookmark();
 
-        function toggleBookmark(id) {
+        function toggleBookmark(
+            id,
+            title,
+            summary,
+            author,
+            mediaUrl,
+            mediaExt,
+            date
+        ){
             if (bookmark.isBookmarked(id)) {
                 bookmark.remove(id);
                 document.getElementById('bookmark-' + id).classList.remove('bi-bookmark-check-fill');
@@ -549,7 +557,15 @@ $newsList = iterator_to_array($cursor);
                 document.getElementById('bookmark-' + id).classList.add('bi-bookmark');
                 alert("Bookmark telah di hapus");
             } else {
-                bookmark.add(id);
+                bookmark.add(
+                    id,
+                    title,
+                    summary,
+                    author,
+                    mediaUrl,
+                    mediaExt,
+                    date
+                );
                 document.getElementById('bookmark-' + id).classList.remove('bi-bookmark');
                 document.getElementById('bookmark-' + id).classList.add('bi-bookmark-check-fill');
                 document.getElementById('bookmark-' + id).classList.add('text-primary');
@@ -558,8 +574,8 @@ $newsList = iterator_to_array($cursor);
         }
 
         function initBookmark() {
-            if (bookmark.getList().length > 0) {
-                bookmark.getList().forEach(id => {
+            if (bookmark.length > 0) {
+                bookmark.getListId().forEach(id => {
                     document.getElementById('bookmark-' + id).classList.remove('bi-bookmark');
                     document.getElementById('bookmark-' + id).classList.add('bi-bookmark-check-fill');
                     document.getElementById('bookmark-' + id).classList.add('text-primary');

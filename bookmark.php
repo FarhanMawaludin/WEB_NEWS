@@ -162,7 +162,7 @@
                             <div class="card-body">
                                 <h5 class="card-title card-text-custom fw-semibold"><?= $news['title'] ?></h5>
                                 <p class="card-text card-text-custom"><?= $news['summary'] ?></p>
-                                <a href="detail.php?id=<?= $news['_id'] ?>" class="btn btn-danger">Selengkapnya</a>
+                                <a href="detail.php?id=${id}" class="btn btn-danger">Selengkapnya</a>
                             </div>
                         </div>
                     </div>
@@ -176,51 +176,7 @@
 
         <div class="row">
             <h4 class="mt-3 mb-3 fw-semibold">Your Bookmark</h4>
-            <?php if (count($newsList) > 0 && !$searchQuery && !$categoryFilter): ?>
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-4 text-end">
-                        <img src="<?= isset($news['media']) ? 'uploads/' . $news['media'] : 'https://placehold.co/60x60' ?>"
-                            class="card-img-top img-fluid float-end"
-                            style=" object-fit: cover; border-radius: 10px; float: right; height: 13rem;"
-                            alt="News Image">
-                    </div>
-                    <div class="col-md-8">
-                        <div class="d-flex align-items-center mt-2 mb-2">
-                            <i class="fas fa-user-circle me-2" style=" font-size: 40px; color: #6c757d;"></i>
-                            <div>
-                                <span class="fw-semibold">Nama Author</span>
-                                <p class="mb-0 text-muted" style="font-size: 12px;">
-                                    Senin, 12 Mei 24</p>
-                            </div>
-                        </div>
-
-
-                        <a href="detail.php?id=<?= $news['_id'] ?>"
-                            class="card-title card-text-custom fw-semibold mb-2 fs-5 text-decoration-none">Judulnya Apa
-                            disinisi?</a>
-                        <p class="card-text card-text-custom ">isi konten atau summary isi konten atau summaryisi konten
-                            atau summary</p>
-                        <div class="d-flex justify-content-between align-items-center mt-3">
-
-                            <!-- Ikon di kanan -->
-                            <div class="d-flex align-items-center me-3">
-                                <!-- Bookmark -->
-                                <button class="btn border-0 p-0 bookmark-btn me-2" id="bookmarkBtn">
-                                    <i class="bi bi-bookmark-fill" id="bookmarkIcon"></i>
-                                </button>
-                                <button class="btn p-0 border-0 ">
-                                    <i class="bi bi-share"></i>
-                                </button>
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <hr class="mt-4 mb-4">
-                </div>
-            </div>
-            <?php endif; ?>
+            <div id="bookmarks" class="container"></div>
         </div>
 
     </div>
@@ -234,27 +190,122 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
+    <script src="bookmark.js"></script>
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const bookmarkBtn = document.getElementById('bookmarkBtn');
-        const bookmarkIcon = document.getElementById('bookmarkIcon');
+        function buildBookmarkHtml(
+            id,
+            title,
+            summary,
+            author,
+            mediaUrl,
+            mediaExt,
+            date
+        ){
+            const IMG_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+            const VIDEO_EXTENSIONS = ['mp4', 'webm', 'ogg'];
 
-        // Tambahkan event listener untuk klik tombol
-        bookmarkBtn.addEventListener('click', function() {
-            // Debug: Pastikan klik terdeteksi
-            console.log('Bookmark button clicked');
-
-            // Toggle class 'fw-bold' untuk membuat teks bold
-            bookmarkIcon.classList.toggle('fw-bold');
-
-            // Ubah ikon bookmark (bisa dari 'bi-bookmark' ke 'bi-bookmark-fill')
-            if (bookmarkIcon.classList.contains('bi-bookmark-fill')) {
-                bookmarkIcon.classList.replace('bi-bookmark-fill', 'bi-bookmark');
+            let media = '';
+            if (IMG_EXTENSIONS.includes(mediaExt)) {
+                media = `<img src="uploads/${mediaUrl}"
+                            class="card-img-top img-fluid float-end"
+                            style=" object-fit: cover; border-radius: 10px; float: right; height: 13rem;"
+                            alt="News Image">`;
+            } else if (VIDEO_EXTENSIONS.includes(mediaExt)) {
+                media = `<video src="uploads/${mediaUrl}"
+                            class="card-img-top img-fluid float-end"
+                            style=" object-fit: cover; border-radius: 10px; float: right; height: 13rem;"
+                            alt="News Image" controls></video>`;
             } else {
-                bookmarkIcon.classList.replace('bi-bookmark', 'bi-bookmark-fill');
+                media = `<img src="https://placehold.co/300x200"
+                            class="card-img-top img-fluid float-end"
+                            style=" object-fit: cover; border-radius: 10px; float: right; height: 13rem;"
+                            alt="News Image">`;
             }
-        });
-    });
+
+            return `<div id="bookmark-${id}" class="row">
+                    <div class="col-md-4 text-end">
+                        ${media}
+                    </div>
+                    <div class="col-md-8">
+                        <div class="d-flex align-items-center mt-2 mb-2">
+                            <i class="fas fa-user-circle me-2" style=" font-size: 40px; color: #6c757d;"></i>
+                            <div>
+                                <span class="fw-semibold">${author}</span>
+                                <p class="mb-0 text-muted" style="font-size: 12px;">${date}</p>
+                            </div>
+                        </div>
+
+
+                        <a href="detail.php?id=${id}"
+                            class="card-title card-text-custom fw-semibold mb-2 fs-5 text-decoration-none">${title}</a>
+                        <p class="card-text card-text-custom ">${summary}</p>
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+
+                            <!-- Ikon di kanan -->
+                            <div class="d-flex align-items-center me-3">
+                                <!-- Bookmark -->
+                                <i 
+                                    id="bookmark-${id}"
+                                    class="bi bi-bookmark-check-fill text-primary"
+                                    onclick="removeBookmark('${id}')"
+                                    style="cursor: pointer"
+                                ></i>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <hr class="mt-4 mb-4">
+                </div>`;
+        }
+
+        const bookmarksElement = document.getElementById('bookmarks');
+        
+        const bookmark = new Bookmark();
+
+        function loadBookmarks(){
+            bookmarksElement.innerHTML = `
+            <div class="text-center mt-5">
+                <i class="bi bi-bookmark text-muted" style="font-size: 4rem;"></i>
+                <p class="text-muted mt-3 fs-5">Your bookmark list is empty</p>
+                <p class="text-muted">Start adding your favorite articles to keep them here!</p>
+            </div>
+        `;
+
+            if (bookmark.length !== 0) {
+                bookmarksElement.innerHTML = '';
+            }
+            bookmark.getListId().forEach(id => {
+                const news = bookmark.bookmarks[id];
+                const bookmarkHtml = buildBookmarkHtml(
+                    id,
+                    news['title'],
+                    news['summary'],
+                    news['author'],
+                    news['mediaUrl'],
+                    news['mediaExt'],
+                    news['date']
+                );
+                bookmarksElement.innerHTML += bookmarkHtml;
+            });
+        }
+        loadBookmarks();
+
+        function removeBookmark(
+            id
+        ){
+            if (!bookmark.isBookmarked(id)) {
+                return;
+            } 
+
+            bookmark.remove(id);
+            document.getElementById('bookmark-' + id).classList.remove('bi-bookmark-check-fill');
+            document.getElementById('bookmark-' + id).classList.remove('text-primary');
+            document.getElementById('bookmark-' + id).classList.add('bi-bookmark');
+            alert("Bookmark telah di hapus");
+
+            loadBookmarks();
+        }
     </script>
 </body>
 

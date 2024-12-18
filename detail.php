@@ -218,7 +218,8 @@ try {
                 <i class="bi bi-eye me-2"> <?= $news["views"] ?? 0 ?> Views</i>
                 <div class="d-flex ms-auto">
                     <!-- Tombol bookmark -->
-                    <i id="bookmark-<?= $news['_id'] ?>" class="bi bi-bookmark me-2" onclick="toggleBookmark('<?= $news['_id'] ?>')" style="cursor: pointer"></i>
+                    <i id="bookmark-<?= $news['_id'] ?>" class="bi bi-bookmark me-2"
+                    onclick="toggleBookmark('<?= $news['_id'] ?>', '<?= $news['title'] ?>', '<?= $news['summary'] ?>', '<?= $news['author'] ?>','<?= $news['media'] ?>', '<?= pathinfo($news['media'], PATHINFO_EXTENSION) ?>', '<?= date('d M Y', strtotime($news['date'] ?? 'now'))?>')" style="cursor: pointer"></i>
                 </div>
             </div>
 
@@ -308,20 +309,35 @@ try {
     <script>
         const bookmark = new Bookmark();
 
-        function toggleBookmark(id) {
+        function toggleBookmark(
+            id,
+            title,
+            summary,
+            author,
+            mediaUrl,
+            mediaExt,
+            date
+        ){
             if (bookmark.isBookmarked(id)) {
-                if (!confirm("Apakah Anda yakin ingin menghapus bookmark ini?")) {
-                    return;
-                }
                 bookmark.remove(id);
                 document.getElementById('bookmark-' + id).classList.remove('bi-bookmark-check-fill');
                 document.getElementById('bookmark-' + id).classList.remove('text-primary');
                 document.getElementById('bookmark-' + id).classList.add('bi-bookmark');
+                alert("Bookmark telah di hapus");
             } else {
-                bookmark.add(id);
+                bookmark.add(
+                    id,
+                    title,
+                    summary,
+                    author,
+                    mediaUrl,
+                    mediaExt,
+                    date
+                );
                 document.getElementById('bookmark-' + id).classList.remove('bi-bookmark');
                 document.getElementById('bookmark-' + id).classList.add('bi-bookmark-check-fill');
                 document.getElementById('bookmark-' + id).classList.add('text-primary');
+                alert("Bookmark telah di simpan");
             }
         }
 
