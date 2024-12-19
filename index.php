@@ -32,8 +32,6 @@ if ($categoryFilter) {
 $newsList = iterator_to_array($cursor);
 
 ?>
-
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -383,7 +381,7 @@ $newsList = iterator_to_array($cursor);
                                         <!-- Bookmark -->
                                         <!-- <button class="" style="margin-right: 0px;"> -->
                                         <i id="bookmark-<?= $news['_id'] ?>" class="bi bi-bookmark me-2"
-                                            onclick="toggleBookmark('<?= $news['_id'] ?>', '<?= $news['title'] ?>', '<?= $news['summary'] ?>', '<?= $news['author'] ?>','<?= $news['media'] ?>', '<?= pathinfo($news['media'], PATHINFO_EXTENSION) ?>', '<?= date('d M Y', strtotime($news['date'] ?? 'now'))?>')"
+                                            onclick="toggleBookmark('<?= $news['_id'] ?>', '<?= $news['title'] ?>', `<?= $news['summary'] ?>`, '<?= $news['author'] ?>','<?= $news['media'] ?>', '<?= pathinfo($news['media'], PATHINFO_EXTENSION) ?>', '<?= date('d M Y', strtotime($news['date'] ?? 'now'))?>')"
                                             style="cursor: pointer"></i>
                                         <!-- </button> -->
                                         <!-- Like/Love -->
