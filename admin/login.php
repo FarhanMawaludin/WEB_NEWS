@@ -1,23 +1,23 @@
 <?php
-session_start();
-require '../config/db.php';
+    session_start();
+    require '../config/db.php';
 
-$errorMessage = "";
+    $errorMessage = "";
 
-// Proses login
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $username = $_POST['username'];
-    $password = $_POST['password'];
+    // Proses login
+    if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+        $username = $_POST['username'];
+        $password = $_POST['password'];
 
-    // Validasi login (contoh sederhana, bisa diganti dengan data dari database)
-    if ($username === "admin" && $password === "password123") {
-        $_SESSION['username'] = true;
-        header('Location: manage_news.php');
-        exit;
-    } else {
-        $errorMessage = "Username atau password salah!";
+        // Validasi login (contoh sederhana, bisa diganti dengan data dari database)
+        if ($username === "admin" && $password === "password123") {
+            $_SESSION['username'] = true;
+            header('Location: manage_news.php');
+            exit;
+        } else {
+            $errorMessage = "Username atau password salah!";
+        }
     }
-}
 ?>
 
 <!DOCTYPE html>

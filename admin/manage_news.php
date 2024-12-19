@@ -1,19 +1,19 @@
 <?php
-session_start();
-require '../config/db.php';
+    session_start();
+    require '../config/db.php';
 
-if (!isset($_SESSION['username'])) {
-    header('Location: login.php');
-    exit;
-}
+    if (!isset($_SESSION['username'])) {
+        header('Location: login.php');
+        exit;
+    }
 
-$collection = $db->news;
+    $collection = $db->news;
 
-// Ambil semua berita dari database
-$newsCursor = $collection->find([], ['sort' => ['created_at' => -1]]);
+    // Ambil semua berita dari database
+    $newsCursor = $collection->find([], ['sort' => ['created_at' => -1]]);
 
-// Ubah cursor menjadi array
-$newsList = iterator_to_array($newsCursor);
+    // Ubah cursor menjadi array
+    $newsList = iterator_to_array($newsCursor);
 ?>
 
 <!DOCTYPE html>
@@ -45,11 +45,14 @@ $newsList = iterator_to_array($newsCursor);
                         <a class="nav-link" href="add_news.php">Tambah Berita</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="manage_category.php">Kelola Kategori</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="logout.php">
-                            <button class="btn btn-danger btn-sm">  
-                            Logout
+                            <button class="btn btn-danger btn-sm">
+                                Logout
                             </button>
-                        </a> 
+                        </a>
                     </li>
                 </ul>
             </div>

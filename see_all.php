@@ -3,19 +3,20 @@ require 'config/db.php';
 
 $searchQuery = isset($_GET['search']) ? trim($_GET['search']) : "";
 $categoryFilter = isset($_GET['category']) ? $_GET['category'] : "";
-$collection = $db->news;
+$newsCollection = $db->news;
+$categoriesCollection = $db->categories;
 
 // Ambil kategori unik dari database
-$categories = $collection->distinct('category');
+$categories = $categoriesCollection->find([], ['sort' => ['name' => 1]]);
 
 // Query berita
 if ($categoryFilter) {
-    $cursor = $collection->find(
+    $cursor = $newsCollection->find(
         ['category' => $categoryFilter],
         ['sort' => ['created_at' => -1]]
     );
 } elseif ($searchQuery) {
-    $cursor = $collection->find(
+    $cursor = $newsCollection->find(
         [
             '$or' => [
                 ['title' => new MongoDB\BSON\Regex($searchQuery, 'i')],
@@ -25,7 +26,7 @@ if ($categoryFilter) {
         ['sort' => ['created_at' => -1]]
     );
 } else {
-    $cursor = $collection->find([], ['sort' => ['created_at' => -1]]);
+    $cursor = $newsCollection->find([], ['sort' => ['created_at' => -1]]);
 }
 
 $newsList = iterator_to_array($cursor);
@@ -114,12 +115,13 @@ $newsList = iterator_to_array($cursor);
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Kategori</a>
                         <div class="dropdown-menu">
-                            <a class="dropdown-item" href="index.php?category=politik">Politik</a>
-                            <a class="dropdown-item" href="index.php?category=bencana">Bencana</a>
-                            <a class="dropdown-item" href="index.php?category=lalu-lintas">Lalu Lintas</a>
-                            <a class="dropdown-item" href="index.php?category=pendidikan">Pendidikan</a>
+                            <?php foreach ($categories as $category): ?>
+                            <a class="dropdown-item" href="index.php?category=<?= $category->name ?>"><?= ucwords($category->name) ?></a>
+                            <?php endforeach; ?>
                         </div>
                     </li>
+                    <li class="nav-item"><a class="nav-link" href="bookmark.php">Bookmark</a></li>
+
                 </ul>
                 <form class="d-flex" method="get" action="index.php">
                     <input class="form-control me-2" type="search" name="search" placeholder="Search"
@@ -148,8 +150,23 @@ $newsList = iterator_to_array($cursor);
                     <?php foreach ($newsList as $news): ?>
                     <div class="col-md-3 mb-4">
                         <div class="card">
-                            <img src="<?= isset($news['image']) ? 'images/' . $news['image'] : 'https://placehold.co/300x200' ?>"
-                                class="card-img-top" height="240rem" style="object-fit: cover;" alt="News Image">
+                            <?php
+                                        $fileExtension = pathinfo($news['media'], PATHINFO_EXTENSION);
+                                        $imageUrl = isset($news['media']) ? 'uploads/' . $news['media'] : 'https://placehold.co/300x200';
+                                        ?>
+
+                            <?php if (in_array(strtolower($fileExtension), ['jpg', 'jpeg', 'png', 'gif', 'webp'])): ?>
+                            <img src="<?= $imageUrl ?>" class="card-img-top" height="240rem" style="object-fit: cover;"
+                                alt="News Image">
+                            <?php elseif (in_array(strtolower($fileExtension), ['mp4', 'webm', 'ogg'])): ?>
+                            <video class="card-img-top" height="240rem" style="object-fit: cover;" controls muted>
+                                <source src="<?= $imageUrl ?>" type="video/<?= $fileExtension ?>">
+                                Your browser does not support the video tag.
+                            </video>
+                            <?php else: ?>
+                            <img src="<?= $imageUrl ?>" class="card-img-top" height="240rem" style="object-fit: cover;"
+                                alt="Placeholder Image">
+                            <?php endif; ?>
                             <div class="card-body">
                                 <h5 class="card-title card-text-custom fw-semibold"><?= $news['title'] ?></h5>
                                 <p class="card-text card-text-custom"><?= $news['summary'] ?></p>
@@ -182,9 +199,25 @@ $newsList = iterator_to_array($cursor);
                     <h4 class="mt-3 mb-3 fw-semibold">Semua Berita</h4>
                     <div class="card position-relative" style="height: 30rem;">
                         <!-- Gambar -->
-                        <img src="<?= isset($news['image']) ? 'images/' . $news['image'] : 'https://placehold.co/600x400' ?>"
-                            class="card-img-top img-fluid" style="object-fit: cover; height: 100%; border-radius: 4px;"
+                        <?php
+                                $fileExtension = pathinfo($news['media'], PATHINFO_EXTENSION);
+                                $imageUrl = isset($news['media']) ? 'uploads/' . $news['media'] : 'https://placehold.co/300x200';
+                                ?>
+
+                        <?php if (in_array(strtolower($fileExtension), ['jpg', 'jpeg', 'png', 'gif', 'webp'])): ?>
+                        <img src="<?= $imageUrl ?>" class="card-img-top" height="100%" style="object-fit: cover;"
                             alt="News Image">
+                        <?php elseif (in_array(strtolower($fileExtension), ['mp4', 'webm', 'ogg'])): ?>
+                        <div class="video-wrapper">
+                            <video class="card-img-top" controls muted>
+                                <source src="<?= $imageUrl ?>" type="video/<?= $fileExtension ?>">
+                                Your browser does not support the video tag.
+                            </video>
+                        </div>
+                        <?php else: ?>
+                        <img src="<?= $imageUrl ?>" class="card-img-top" height="100%" style="object-fit: cover;"
+                            alt="Placeholder Image">
+                        <?php endif; ?>
 
                         <!-- Konten Overlay -->
                         <div class="card-img-overlay d-flex flex-column justify-content-end"
@@ -218,8 +251,22 @@ $newsList = iterator_to_array($cursor);
                     <div class="col-md-4 mb-4">
                         <div class="card">
                             <a href="detail.php?id=<?= $news['_id'] ?>" class="text-decoration-none text-black">
-                                <img src="<?= isset($news['image']) ? 'images/' . $news['image'] : 'https://placehold.co/300x200' ?>"
-                                    class="card-img-top" height="200rem" style="object-fit: cover;" alt=" News Image">
+                                <?php
+$fileExtension = isset($news['media']) ? pathinfo($news['media'], PATHINFO_EXTENSION) : '';
+$mediaUrl = isset($news['media']) ? 'uploads/' . $news['media'] : 'https://placehold.co/300x200';
+?>
+
+<?php if (in_array(strtolower($fileExtension), ['jpg', 'jpeg', 'png', 'gif', 'webp'])): ?>
+    <img src="<?= $mediaUrl ?>" class="card-img-top" height="200rem" style="object-fit: cover;" alt="News Image">
+<?php elseif (in_array(strtolower($fileExtension), ['mp4', 'webm', 'ogg'])): ?>
+    <video class="card-img-top" height="200rem" style="object-fit: cover;" controls muted>
+        <source src="<?= $mediaUrl ?>" type="video/<?= strtolower($fileExtension) ?>">
+        Your browser does not support the video tag.
+    </video>
+<?php else: ?>
+    <img src="https://placehold.co/300x200" class="card-img-top" height="200rem" style="object-fit: cover;" alt="Placeholder Image">
+<?php endif; ?>
+
                                 <div class="card-body">
                                     <span class="badge bg-danger mb-2"><?= htmlspecialchars($news['category']) ?></span>
                                     <h5 class="card-title card-text-custom fw-semibold"><?= $news['title'] ?></h5>
