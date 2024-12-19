@@ -484,7 +484,7 @@ $newsList = iterator_to_array($cursor);
                                     <?php
                                             $sortedCategories = $categories;
                                             usort($sortedCategories, function ($a, $b) {
-                                                return ($a['views'] ?? 0) < ($b['views'] ?? 0);
+                                                return ($a['views'] ?? 0) <=> ($b['views'] ?? 0);
                                             });
                                             foreach (array_slice($sortedCategories, 0, 6) as $category):
                                         ?>
