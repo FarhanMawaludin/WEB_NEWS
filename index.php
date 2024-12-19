@@ -391,7 +391,7 @@ $newsList = iterator_to_array($cursor);
                                         <!-- Share -->
                                         <!-- <button class=""> -->
                                         <i id="share-<?= $news['_id'] ?>" class="bi bi-share" style="cursor: pointer"
-                                        onclick="shareToWhatsApp('<?= $news['title'] ?>', '<?= $news['summary'] ?>', '/detail.php?id=<?= $news['_id'] ?>')"></i>
+                                        onclick="shareToWhatsApp('<?= $news['title'] ?>', `<?= $news['summary'] ?>`, '/detail.php?id=<?= $news['_id'] ?>')"></i>
 
                                         <!-- </button> -->
                                     </div>
