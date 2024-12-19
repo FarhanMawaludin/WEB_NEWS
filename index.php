@@ -390,7 +390,9 @@ $newsList = iterator_to_array($cursor);
                                     </button> -->
                                         <!-- Share -->
                                         <!-- <button class=""> -->
-                                        <i class="bi bi-share"></i>
+                                        <i id="share-<?= $news['_id'] ?>" class="bi bi-share" style="cursor: pointer"
+                                        onclick="shareToWhatsApp('<?= $news['title'] ?>', '<?= $news['summary'] ?>', '/detail.php?id=<?= $news['_id'] ?>')"></i>
+
                                         <!-- </button> -->
                                     </div>
                                 </div>
@@ -587,13 +589,27 @@ $newsList = iterator_to_array($cursor);
         function initBookmark() {
             if (bookmark.length > 0) {
                 bookmark.getListId().forEach(id => {
-                    document.getElementById('bookmark-' + id).classList.remove('bi-bookmark');
-                    document.getElementById('bookmark-' + id).classList.add('bi-bookmark-check-fill');
-                    document.getElementById('bookmark-' + id).classList.add('text-primary');
+                    elementId = document.getElementById('bookmark-' + id);
+                    if (elementId) {
+                        elementId.classList.remove('bi-bookmark');
+                        elementId.classList.add('bi-bookmark-check-fill');
+                        elementId.classList.add('text-primary');
+                    }
                 });
             }
         }
         initBookmark();
+
+        function shareToWhatsApp(title, summary, url) {
+            // Format pesan untuk WhatsApp
+            const message = `${title}\n\n${summary}\n\nBaca selengkapnya di: ${url}`;
+
+            // URL WhatsApp
+            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+
+            // Buka WhatsApp di tab baru
+            window.open(whatsappUrl, '_blank');
+         }
         </script>
 </body>
 
